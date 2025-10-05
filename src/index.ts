@@ -1,6 +1,14 @@
 import express from "express";
 import { initializeX402Middleware } from "./middleware/x402";
 import { PaymentHandler } from "./services/payment-handler";
+import { errorHandler, notFoundHandler } from "./middleware/error-handler";
+import { requestLogger, paymentLogger } from "./middleware/logging";
+import {
+  securityHeaders,
+  corsHandler,
+  rateLimiter,
+} from "./middleware/security";
+import routes from "./routes";
 
 // Main application entry point
 console.log("URL Shortener with x402 Payment Integration");
@@ -18,17 +26,45 @@ if (!configValidation.isValid) {
   process.exit(1);
 }
 
-// Middleware setup
-app.use(express.json());
+// Trust proxy for accurate IP addresses
+app.set("trust proxy", true);
 
-// Initialize x402 payment middleware
+// Security middleware (applied first)
+app.use(securityHeaders);
+app.use(corsHandler);
+app.use(rateLimiter);
+
+// Request parsing middleware
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+
+// Logging middleware
+app.use(requestLogger);
+app.use(paymentLogger);
+
+// Initialize x402 payment middleware for protected endpoints
 const x402Middleware = initializeX402Middleware();
 
-// Example of how the x402 middleware would be used
-// This will be fully implemented in task 5 (API endpoints)
+// Apply x402 middleware only to the shorten endpoint
 app.use("/api/shorten", x402Middleware);
 
-console.log("x402 payment integration configured successfully");
-console.log("Payment handler initialized and ready");
+// API routes
+app.use(routes);
+
+// 404 handler for unknown routes
+app.use(notFoundHandler);
+
+// Global error handler (must be last)
+app.use(errorHandler);
+
+// Start server
+if (require.main === module) {
+  app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+    console.log(`Health check: http://localhost:${port}/health`);
+    console.log("x402 payment integration configured successfully");
+    console.log("Payment handler initialized and ready");
+  });
+}
 
 export { app, paymentHandler };
