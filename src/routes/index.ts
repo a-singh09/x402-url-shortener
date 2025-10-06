@@ -16,12 +16,14 @@ router.get("/stats/:shortCode", asyncHandler(handleRedirectStats));
 
 // Health check endpoint
 router.get("/health", (req, res) => {
-  res.status(200).json({
+  const healthStatus = {
     success: true,
     status: "healthy",
     timestamp: new Date().toISOString(),
     service: "url-shortener-x402",
-  });
+  };
+
+  res.status(200).json(healthStatus);
 });
 
 export default router;

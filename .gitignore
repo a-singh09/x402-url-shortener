@@ -51,3 +51,5 @@ coverage/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+ca.pem

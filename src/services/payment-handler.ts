@@ -62,17 +62,22 @@ export class PaymentHandler {
         };
       }
 
-      // Validate payment amount (minimum 1 USDC = 1000000 atomic units)
+      // Validate payment amount (range: 0.001 to 0.01 USDC)
       const paymentAmount = parseInt(amount, 10);
-      const requiredAmount = parseInt(
-        PAYMENT_REQUIREMENTS.maxAmountRequired,
-        10,
-      );
+      const minAmount = parseInt(PAYMENT_REQUIREMENTS.minAmountRequired, 10);
+      const maxAmount = parseInt(PAYMENT_REQUIREMENTS.maxAmountRequired, 10);
 
-      if (paymentAmount < requiredAmount) {
+      if (paymentAmount < minAmount) {
         return {
           isValid: false,
-          error: `Insufficient payment amount. Required: ${requiredAmount}, received: ${paymentAmount}`,
+          error: `Payment amount too low. Minimum: ${minAmount} (0.001 USDC), received: ${paymentAmount}`,
+        };
+      }
+
+      if (paymentAmount > maxAmount) {
+        return {
+          isValid: false,
+          error: `Payment amount too high. Maximum: ${maxAmount} (0.01 USDC), received: ${paymentAmount}`,
         };
       }
 

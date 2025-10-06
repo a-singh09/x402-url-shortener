@@ -2,11 +2,22 @@ import { RoutesConfig } from "x402-express";
 
 // x402 payment configuration for Base Sepolia
 export const paymentConfig: RoutesConfig = {
-  "/api/shorten": {
-    price: "$1.00", // 1 USDC
+  "POST /api/shorten": {
+    price: "$0.001-$0.01", // 0.001 to 0.01 USDC range
     network: "base-sepolia",
+    asset: {
+      address: "0x036CbD53842c5426634e7929541eC2318f3dCF7e" as `0x${string}`,
+      decimals: 6,
+      eip712: {
+        name: "USDC",
+        version: "2",
+      },
+    },
     config: {
-      description: "URL shortening service",
+      description:
+        "URL shortening service - Create shortened URLs with blockchain payment verification",
+      mimeType: "application/json",
+      maxTimeoutSeconds: 300,
     },
   },
 };
@@ -17,9 +28,10 @@ export const USDC_CONTRACT_ADDRESS =
 
 // Payment requirements configuration
 export const PAYMENT_REQUIREMENTS = {
-  scheme: "exact" as const,
+  scheme: "range" as const,
   network: "base-sepolia",
-  maxAmountRequired: "1000000", // 1 USDC in atomic units (6 decimals)
+  minAmountRequired: "1000", // 0.001 USDC in atomic units (6 decimals)
+  maxAmountRequired: "10000", // 0.01 USDC in atomic units (6 decimals)
   maxTimeoutSeconds: 300, // 5 minutes
   asset: USDC_CONTRACT_ADDRESS,
   extra: {
@@ -32,7 +44,7 @@ export const PAYMENT_REQUIREMENTS = {
 export const getPaymentConfig = () => {
   const businessWalletAddress = process.env.BUSINESS_WALLET_ADDRESS;
   const facilitatorUrl =
-    process.env.FACILITATOR_URL || "https://facilitator.x402.org";
+    process.env.FACILITATOR_URL || "https://x402.org/facilitator";
 
   if (!businessWalletAddress) {
     throw new Error("BUSINESS_WALLET_ADDRESS environment variable is required");

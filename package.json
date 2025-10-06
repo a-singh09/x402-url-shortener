@@ -5,12 +5,15 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/index.js",
-    "dev": "ts-node src/index.ts",
+    "start": "node dist/startup.js",
+    "start:app": "node dist/index.js",
+    "dev": "ts-node src/startup.ts",
+    "dev:app": "ts-node src/index.ts",
     "test": "jest",
     "clean": "rm -rf dist",
     "db:setup": "echo 'Run: createdb url_shortener && psql url_shortener < schema.sql'",
-    "db:reset": "echo 'Run: dropdb url_shortener && createdb url_shortener && psql url_shortener < schema.sql'"
+    "db:reset": "echo 'Run: dropdb url_shortener && createdb url_shortener && psql url_shortener < schema.sql'",
+    "health": "curl -f http://localhost:3000/health || exit 1"
   },
   "keywords": [
     "url-shortener",
@@ -32,8 +35,13 @@
     "typescript": "^5.3.2"
   },
   "dependencies": {
+    "axios": "^1.13.2",
+    "dotenv": "^16.6.1",
     "express": "^4.18.2",
     "pg": "^8.16.3",
-    "x402-express": "^0.7.0"
+    "viem": "^2.38.6",
+    "x402-axios": "^0.7.0",
+    "x402-express": "^0.7.0",
+    "x402-fetch": "^0.7.0"
   }
 }

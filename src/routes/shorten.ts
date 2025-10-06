@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import { UrlValidator } from "../services/url-validator";
 import { ShortUrlGenerator } from "../services/short-url-generator";
 import { UrlStorageService } from "../services/url-storage";
-import { PaymentHandler } from "../services/payment-handler";
 
 interface ShortenResponse {
   success: boolean;
@@ -41,39 +40,7 @@ export async function handleShortenUrl(
       return;
     }
 
-    // Extract payment data from x402 middleware
-    // The x402 middleware should have already verified the payment
-    const paymentHeader = req.headers["x-payment"];
-    if (!paymentHeader) {
-      res.status(402).json({
-        success: false,
-        error: "Payment required",
-        code: "PAYMENT_REQUIRED",
-      });
-      return;
-    }
-
-    // Parse payment data - x402 middleware should have already processed this
-    // For now, we'll extract basic payment info from the header
-    let paymentData;
-    try {
-      const headerValue = Array.isArray(paymentHeader)
-        ? paymentHeader[0]
-        : paymentHeader;
-      paymentData = JSON.parse(Buffer.from(headerValue, "base64").toString());
-    } catch (error) {
-      paymentData = null;
-    }
-
-    if (!paymentData) {
-      res.status(402).json({
-        success: false,
-        error: "Invalid payment data",
-        code: "INVALID_PAYMENT",
-      });
-      return;
-    }
-
+    // If we reach here, payment has been verified by x402 middleware
     // Generate unique short code
     const urlStorage = new UrlStorageService();
     let shortCode: string;
@@ -96,8 +63,8 @@ export async function handleShortenUrl(
     await urlStorage.storeUrl({
       shortCode,
       originalUrl: validationResult.normalizedUrl || url,
-      paymentTxHash: paymentData?.txHash,
-      creatorAddress: paymentData?.creatorAddress,
+      paymentTxHash: req.paymentData?.txHash,
+      creatorAddress: req.paymentData?.creatorAddress,
     });
 
     // Construct full short URL
@@ -111,16 +78,16 @@ export async function handleShortenUrl(
       shortUrl,
       originalUrl: validationResult.normalizedUrl || url,
       shortCode,
-      paymentTxHash: paymentData?.txHash || "",
+      paymentTxHash: req.paymentData?.txHash || "",
     };
 
     // Set payment confirmation in response header
     res.setHeader(
       "X-PAYMENT-RESPONSE",
       JSON.stringify({
-        txHash: paymentData?.txHash || "",
-        amount: paymentData?.amount || "",
-        creatorAddress: paymentData?.creatorAddress || "",
+        txHash: req.paymentData?.txHash || "",
+        amount: req.paymentData?.amount || "",
+        creatorAddress: req.paymentData?.creatorAddress || "",
       }),
     );
 
