@@ -81,16 +81,6 @@ export async function handleShortenUrl(
       paymentTxHash: req.paymentData?.txHash || "",
     };
 
-    // Set payment confirmation in response header
-    res.setHeader(
-      "X-PAYMENT-RESPONSE",
-      JSON.stringify({
-        txHash: req.paymentData?.txHash || "",
-        amount: req.paymentData?.amount || "",
-        creatorAddress: req.paymentData?.creatorAddress || "",
-      }),
-    );
-
     res.status(200).json(response);
   } catch (error) {
     console.error("Error in URL shortening:", error);

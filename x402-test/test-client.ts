@@ -47,7 +47,20 @@ const urlToShorten =
 
 console.log(`URL to shorten: ${urlToShorten}`);
 
-// Create wallet client following x402 documentation
+// Helper function to format payment amount
+function formatPaymentAmount(amountWei: string): string {
+  const amount = BigInt(amountWei);
+  const usdcDecimals = 6;
+  const divisor = BigInt(10 ** usdcDecimals);
+
+  const wholePart = amount / divisor;
+  const fractionalPart = amount % divisor;
+
+  const fractionalStr = fractionalPart.toString().padStart(usdcDecimals, "0");
+  return `${wholePart}.${fractionalStr} USDC`;
+}
+
+// Create wallet client
 const account = privateKeyToAccount(privateKey as `0x${string}`);
 const client = createWalletClient({
   account,
@@ -69,14 +82,47 @@ fetchWithPayment(`${baseUrl}/api/shorten`, {
   }),
 })
   .then(async (response) => {
+    console.log(`Response status: ${response.status} ${response.statusText}`);
+
+    // Check if response is JSON
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      const text = await response.text();
+      console.log("Non-JSON response received:");
+      console.log(text.substring(0, 500) + (text.length > 500 ? "..." : ""));
+      return;
+    }
+
     const body = await response.json();
     console.log("Success!", body);
 
     // Check payment details
     const paymentHeader = response.headers.get("x-payment-response");
-    if (paymentHeader) {
-      const paymentResponse = decodeXPaymentResponse(paymentHeader);
-      console.log("Payment details:", paymentResponse);
+    if (paymentHeader && paymentHeader.trim() !== "") {
+      try {
+        const paymentResponse = decodeXPaymentResponse(paymentHeader);
+        console.log("Payment details:", paymentResponse);
+
+        // Show transaction hash with link (using correct property name)
+        if (paymentResponse.transaction) {
+          console.log(
+            `🔗 Transaction: https://sepolia.basescan.org/tx/${paymentResponse.transaction}`,
+          );
+        }
+
+        // Show network and payer info
+        if (paymentResponse.network) {
+          console.log(`🌐 Network: ${paymentResponse.network}`);
+        }
+        if (paymentResponse.payer) {
+          console.log(`👤 Payer: ${paymentResponse.payer}`);
+        }
+      } catch (error) {
+        console.log("Could not decode payment response header:", paymentHeader);
+        console.log("Decode error:", error.message);
+      }
+    } else {
+      console.log("No payment response header found or header is empty");
     }
   })
   .catch((error) => {
