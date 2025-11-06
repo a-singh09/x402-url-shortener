@@ -201,12 +201,78 @@ This service uses the x402 protocol for cryptocurrency payments. Here's how it w
 
 ## 🧪 Testing
 
+### Test Client Usage
+
+The project includes a test client that demonstrates the x402 payment integration. The test client accepts command line arguments for easy testing with different URLs.
+
+#### Basic Usage
+
+```bash
+# Test with default URL (https://example.com)
+npx tsx x402-test/test-client.ts
+
+# Test with a specific URL (positional argument)
+npx tsx x402-test/test-client.ts https://google.com
+
+# Test with a specific URL (named argument)
+npx tsx x402-test/test-client.ts --url=https://github.com
+
+# Show help information
+npx tsx x402-test/test-client.ts --help
+```
+
+#### Test Client Features
+
+- **Flexible URL input**: Accepts URLs as positional or named arguments
+- **Environment configuration**: Uses `BASE_URL` environment variable for server endpoint
+- **Payment integration**: Demonstrates complete x402 payment flow
+- **Response logging**: Shows both API response and payment details
+- **Help documentation**: Built-in usage instructions
+
+#### Prerequisites for Testing
+
+1. **Set up your environment variables** in `.env`:
+
+   ```env
+   PRIVATE_KEY=0xYourPrivateKeyWithBaseSepolia
+   BASE_URL=https://x402-url-shortener.onrender.com
+   ```
+
+2. **Ensure you have Base Sepolia tokens**:
+
+   - Base Sepolia ETH for gas fees
+   - Base Sepolia USDC for payments (0.001 USDC per request)
+
+3. **Start your server**:
+   ```bash
+   npm run dev
+   ```
+
+#### Example Output
+
+```bash
+$ npx tsx x402-test/test-client.ts https://github.com
+Using base URL: http://localhost:3000
+URL to shorten: https://github.com
+Success! {
+  success: true,
+  shortUrl: "http://localhost:3000/abc123",
+  originalUrl: "https://github.com",
+  shortCode: "abc123",
+  paymentTxHash: "0x..."
+}
+Payment details: {
+  txHash: "0x...",
+  amount: "1000",
+  token: "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
+}
+```
+
 ### Test the Payment Flow
 
 1. **Test the payment integration**:
    ```bash
-   cd x402-test
-   npx tsx test-client.ts
+   npx tsx x402-test/test-client.ts
    ```
 
 ### Manual Testing with curl
