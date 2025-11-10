@@ -2,6 +2,14 @@
 
 A modern URL shortening service that requires cryptocurrency payments using the x402 protocol. Built with Node.js, Express, TypeScript, and PostgreSQL.
 
+## Live Demo
+
+
+
+https://github.com/user-attachments/assets/fb6a9a1a-f387-4fda-9b08-faecb382022a
+
+
+
 ## 🚀 Features
 
 - **Crypto Payments**: Requires 0.001 USDC payment per URL shortening via x402 protocol
